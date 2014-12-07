@@ -72,7 +72,6 @@ private:
 	int							fDuration;
 	int							fGrains;
 	int							fCirclePerc;
-	bool						fWireframe;
 };
 
 #endif

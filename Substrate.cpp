@@ -210,8 +210,7 @@ Substrate::Substrate(BMessage* archive, image_id id)
 	fNumCracks(5),
 	fDuration(2000),
 	fGrains(50),
-	fCirclePerc(30),
-	fWireframe(false)
+	fCirclePerc(30)
 {
 	fNumCracks = archive->GetInt32("fNumCracks", fNumCracks);
 	fDuration = archive->GetInt32("fDuration", fDuration);
@@ -404,8 +403,7 @@ void Substrate::_StepCracks(BView* view)
 
 		fCrackGrid[(int) c->p.x][(int) c->p.y] = (int) c->fAngle;
 
-		if (!fWireframe)
-			_DrawSand(view, c);
+		_DrawSand(view, c);
 
 		view->BeginLineArray(1);
 		view->AddLine(old.p, c->p, kCrackColor);
