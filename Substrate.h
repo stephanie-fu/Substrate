@@ -72,6 +72,11 @@ private:
 	int							fDuration;
 	int							fGrains;
 	int							fCirclePerc;
+	bool						fDark;
+
+	bool						fWantRestart;
 };
+
+rgb_color InvertColor(rgb_color clr);
 
 #endif

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 #include <Alignment.h>
+#include <CheckBox.h>
 #include <TextView.h>
 #include <GroupLayout.h>
 #include <Slider.h>
@@ -65,6 +66,9 @@ static const int kMaximumCirclePerc = 100;
 
 static const rgb_color kCrackColor = { 0, 0, 0, 0xff };
 static const rgb_color kBGColor = { 0xff, 0xfd, 0xe6, 0xff };
+
+static const rgb_color kDarkCrackColor = { 0xff, 0xff, 0xff, 0xff };
+static const rgb_color kDarkBGColor = { 0, 0x2, 0x19, 0xff };
 
 static const rgb_color kColorMap[] = {
 	{ 0x20, 0x1f, 0x21, 0x0f },
@@ -195,6 +199,7 @@ enum {
 	MSG_SET_GRAINS		= 'sgrs',
 	MSG_SET_CIRCLE		= 'scrc',
 	MSG_SET_WIREFRAME	= 'swrf',
+	MSG_SET_DARK		= 'sdrk',
 };
 
 extern "C" BScreenSaver*
@@ -211,12 +216,15 @@ Substrate::Substrate(BMessage* archive, image_id id)
 	fNumCracks(5),
 	fDuration(2000),
 	fGrains(50),
-	fCirclePerc(30)
+	fCirclePerc(30),
+	fDark(false),
+	fWantRestart(false)
 {
 	fNumCracks = archive->GetInt32("fNumCracks", fNumCracks);
 	fDuration = archive->GetInt32("fDuration", fDuration);
 	fGrains = archive->GetInt32("fGrains", fGrains);
 	fCirclePerc = archive->GetInt32("fCirclePerc", fCirclePerc);
+	fDark = archive->GetBool("fDark", fDark);
 }
 
 
@@ -285,6 +293,13 @@ void Substrate::StartConfig(BView* view)
 	circleSlider->ResizeToPreferred();
 	circleSlider->SetTarget(this);
 	group->AddView(circleSlider);
+
+	BCheckBox* darkCheckBox = new BCheckBox("name", "Dark mode",
+			new BMessage(MSG_SET_DARK));
+	darkCheckBox->SetValue(fDark);
+	darkCheckBox->ResizeToPreferred();
+	darkCheckBox->SetTarget(this);
+	group->AddView(darkCheckBox);
 }
 
 
@@ -312,7 +327,7 @@ status_t Substrate::StartSaver(BView* view, bool prev)
 
 void Substrate::_Restart(BView* view)
 {
-	view->SetHighColor(kBGColor);
+	view->SetHighColor(fDark ? kDarkBGColor : kBGColor);
 	view->FillRect(view->Bounds());
 
 	fCracks.MakeEmpty();
@@ -322,12 +337,14 @@ void Substrate::_Restart(BView* view)
 	for (int x = 0; x < fWidth; x++)
 		for (int y = 0; y < fHeight; y++)
 			fCrackGrid[x][y] = GRID_INIT;
+
+	fWantRestart = false;
 }
 
 
 void Substrate::Draw(BView* view, int32 frame)
 {
-	if (frame % fDuration == 0)
+	if (frame % fDuration == 0 || fWantRestart)
 		_Restart(view);
 	_StepCracks(view);
 }
@@ -355,6 +372,8 @@ void Substrate::_AddCrack()
 	c->p.x = x;
 	c->p.y = y;
 	c->fColor = kColorMap[random() % ARRAY_SIZE(kColorMap)];
+	if (fDark)
+		c->fColor = InvertColor(c->fColor);
 	c->fGain = random() / RAND_MAX;
 	c->fAngleDrawn = 0;
 
@@ -408,7 +427,7 @@ void Substrate::_StepCracks(BView* view)
 		_DrawSand(view, c);
 
 		view->BeginLineArray(1);
-		view->AddLine(old.p, c->p, kCrackColor);
+		view->AddLine(old.p, c->p, fDark ? kDarkCrackColor : kCrackColor);
 		view->EndLineArray();
 	}
 }
@@ -464,6 +483,10 @@ void Substrate::MessageReceived(BMessage* msg)
 	case MSG_SET_CIRCLE:
 		fCirclePerc = msg->GetInt32("be:value", fCirclePerc);
 		break;
+	case MSG_SET_DARK:
+		fDark = msg->GetInt32("be:value", fDark) == B_CONTROL_ON;
+		fWantRestart = true;
+		break;
 	default:
 		BHandler::MessageReceived(msg);
 	}
@@ -476,5 +499,14 @@ status_t Substrate::SaveState(BMessage* into) const
 	into->AddInt32("fDuration", fDuration);
 	into->AddInt32("fGrains", fGrains);
 	into->AddInt32("fCirclePerc", fCirclePerc);
+	into->AddBool("fDark", fDark);
 	return B_OK;
+}
+
+rgb_color InvertColor(rgb_color clr)
+{
+	clr.red = 0xff - clr.red;
+	clr.green = 0xff - clr.green;
+	clr.blue = 0xff - clr.blue;
+	return clr;
 }
