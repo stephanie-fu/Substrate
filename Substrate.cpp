@@ -31,7 +31,7 @@
 #include <Alignment.h>
 #include <CheckBox.h>
 #include <TextView.h>
-#include <GroupLayout.h>
+#include <LayoutBuilder.h>
 #include <Slider.h>
 #include <String.h>
 #include <Window.h>
@@ -238,12 +238,6 @@ Substrate::~Substrate()
 
 void Substrate::StartConfig(BView* view)
 {
-	BGroupLayout* group = new BGroupLayout(B_VERTICAL, B_USE_ITEM_SPACING);
-	group->SetInsets(B_USE_WINDOW_INSETS);
-	group->SetExplicitAlignment(
-			BAlignment(B_ALIGN_HORIZONTAL_CENTER, B_ALIGN_TOP));
-	view->SetLayout(group);
-
 	BWindow* win = view->Window();
 	if (win)
 		win->AddHandler(this);
@@ -256,7 +250,6 @@ void Substrate::StartConfig(BView* view)
 	textView->SetStylable(true);
 	textView->MakeEditable(false);
 	textView->SetFontAndColor(0, kName.Length(), be_bold_font);
-	view->AddChild(textView);
 
 	BSlider* cnumSlider = new BSlider("name", "Amount of cracks:",
 			new BMessage(MSG_SET_CRACKS),
@@ -265,7 +258,6 @@ void Substrate::StartConfig(BView* view)
 	cnumSlider->SetValue(fNumCracks);
 	cnumSlider->ResizeToPreferred();
 	cnumSlider->SetTarget(this);
-	group->AddView(cnumSlider);
 
 	BSlider* durationSlider = new BSlider("name", "Duration:",
 			new BMessage(MSG_SET_DURATION),
@@ -274,7 +266,6 @@ void Substrate::StartConfig(BView* view)
 	durationSlider->SetValue(fDuration);
 	durationSlider->ResizeToPreferred();
 	durationSlider->SetTarget(this);
-	group->AddView(durationSlider);
 
 	BSlider* grainSlider = new BSlider("name", "Amount of grains:",
 			new BMessage(MSG_SET_GRAINS),
@@ -283,7 +274,6 @@ void Substrate::StartConfig(BView* view)
 	grainSlider->SetValue(fGrains);
 	grainSlider->ResizeToPreferred();
 	grainSlider->SetTarget(this);
-	group->AddView(grainSlider);
 
 	BSlider* circleSlider = new BSlider("name", "Circle percentage:",
 			new BMessage(MSG_SET_CIRCLE),
@@ -292,14 +282,25 @@ void Substrate::StartConfig(BView* view)
 	circleSlider->SetValue(fCirclePerc);
 	circleSlider->ResizeToPreferred();
 	circleSlider->SetTarget(this);
-	group->AddView(circleSlider);
 
 	BCheckBox* darkCheckBox = new BCheckBox("name", "Dark mode",
 			new BMessage(MSG_SET_DARK));
 	darkCheckBox->SetValue(fDark);
 	darkCheckBox->ResizeToPreferred();
 	darkCheckBox->SetTarget(this);
-	group->AddView(darkCheckBox);
+
+	BLayoutBuilder::Group<>(view, B_VERTICAL, B_USE_ITEM_SPACING)
+		.SetInsets(B_USE_WINDOW_INSETS)
+		.SetExplicitAlignment(BAlignment(B_ALIGN_HORIZONTAL_CENTER, B_ALIGN_TOP))
+		.Add(textView)
+		.Add(cnumSlider)
+		.Add(durationSlider)
+		.Add(grainSlider)
+		.Add(circleSlider)
+		.AddGroup(B_HORIZONTAL)
+			.Add(darkCheckBox)
+			.AddGlue()
+		.End();
 }
 
 
