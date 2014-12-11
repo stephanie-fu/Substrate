@@ -304,6 +304,7 @@ status_t Substrate::StartSaver(BView* view, bool prev)
 
 	view->SetDrawingMode(B_OP_ALPHA);
 	view->SetLineMode(B_ROUND_CAP, B_ROUND_JOIN);
+	view->SetFlags(view->Flags() | B_SUBPIXEL_PRECISE);
 
 	return B_OK;
 }
@@ -375,7 +376,7 @@ void Substrate::_AddCrack()
 
 void Substrate::_StepCracks(BView* view)
 {
-	view->SetPenSize(1.5);
+	view->SetPenSize(2);
 	for (int i = 0; i < fCracks.CountItems(); i++) {
 		Crack* c = fCracks.ItemAt(i);
 		Crack old = *c;
