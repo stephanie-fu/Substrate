@@ -376,9 +376,9 @@ void Substrate::_AddCrack()
 	if (fDark)
 		c->fColor = InvertColor(c->fColor);
 	c->fGain = random() / RAND_MAX;
-	c->fAngleDrawn = 0;
 
 	if ((random() % 100) <= fCirclePerc) {
+		c->fAngleDrawn = 0;
 		float r = 10 + (random() % ((fWidth + fHeight) / 2));
 		if (random() % 2)
 			r *= -1;
@@ -417,7 +417,7 @@ void Substrate::_StepCracks(BView* view)
 		if (!view->Bounds().Contains(c->p)
 				|| (fCrackGrid[(int)c->p.x][(int)c->p.y] <= 360
 					&& fabs(fCrackGrid[(int)c->p.x][(int)c->p.y] - c->fAngle) > 5)
-				|| c->fAngleDrawn > 360) {
+				|| (c->fAngleInc != 0 && c->fAngleDrawn > 360)) {
 			fCracks.RemoveItem(c);
 			_AddCrack();
 			continue;
