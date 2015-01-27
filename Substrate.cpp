@@ -311,8 +311,8 @@ status_t Substrate::StartSaver(BView* view, bool prev)
 	srandom(time(NULL));
 
 	BRect rect = view->Bounds();
-	fWidth = (int) rect.Width();
-	fHeight = (int) rect.Height();
+	fWidth = (int) rect.Width() + 1;
+	fHeight = (int) rect.Height() + 1;
 
 	fCrackGrid = new int*[fWidth];
 	for (int i = 0; i < fWidth; i++)
